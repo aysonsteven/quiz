@@ -1,0 +1,40 @@
+<base-nav></base-nav>
+<section class="container-fluid">
+    <br>
+  <div class="container-fluid">
+  <div *ngIf="showForm"><app-questionform 
+  [mode]    = " 'create-post' "
+  [posts]   = " question_data "
+  (cancel)  = " editComponentOnCancel() "
+  (success) = " editComponentOnSuccess() "></app-questionform></div>
+  </div>
+
+  <hr/>
+  <div class="container-fluid">
+    <button class="btn btn-secondary btn-sm" (click)="onClickAddQuestions()">Add Question</button>
+
+  <br/> <br/>
+
+    <div >
+      <div class="card"  *ngFor="let exam of question_data; let i = index">
+        <div class="card-block">
+          <h4 class="card-title">Question: {{ exam.question }}</h4>
+            <div  *ngIf="exam.more">
+              <ol choices>
+                <li>{{ exam.choice1 }} </li>
+                <li>{{ exam.choice2 }} </li>
+                <li>{{ exam.choice3 }} </li>
+                <li>{{ exam.choice4 }} </li>
+              </ol>
+              <h4>Answer: {{ exam.answer }}</h4>
+            </div>
+
+            
+              <button type="button" class="btn btn-secondary btn-sm" (click)=" exam.more = ! exam.more " >{{ exam.more  ? 'Less' : 'More' }}</button> 
+              <button class="btn btn-success btn-sm" (click)="onClickEdit( exam, i )">EDIT</button>
+              <button class="btn btn-danger btn-sm" (click)="onClickDelete( exam.idx, i )">DELETE</button>  
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

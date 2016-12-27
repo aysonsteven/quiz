@@ -1,52 +1,16 @@
-import { Component } from '@angular/core';
-import { Http, Headers, RequestOptions } from '@angular/http';
-
-interface form{
-    userid:string,
-    password:string,
-    email:string
-}
-@Component( {
-    selector: 'registration-page',
-    templateUrl: 'registration.component.html'
-})
-export class RegistrationPage {
-    registration_form:form = <form>{};
-    server:string = 'http://work.org/server/index.php';
-    constructor( private http: Http ){}
-
-    get requestOptions() : RequestOptions {
-            let headers  = new Headers({ 'Content-Type': 'application/x-www-form-urlencoded' });
-            let options  = new RequestOptions({ headers: headers });   
-            return options;
-        }
-
-  onClickRegister(){
-// //   if ( this.validateForm() == false ) return;
-// //   this.errorChk = { progress: 'Registration on progress: please wait..' };
-//   this.http.get( this.server + '?mc=user.register&id=' + this.userData.id + '&email=' + this.userData.email+ '&password='+ this.userData.password ).subscribe( re=>{
-//     console.log('ok : ' + re )
-//     // this.onClickReset();
-//     // this.errorChk = { success: 'Registration success.' };
-//   }, e=>{
-//     console.log('error' + e)
-//   })
-
-    this.user_register( this.registration_form, res=>{
-        console.log('successfull registered')
-    }, err=> alert('error ' + err ))
-}
+import { Injectable } from '@angular/core';
+import { Http } from '@angular/http';
+import { Server, MEMBER_LOGIN } from './server';
 
 
+const SESSION_ID = 'session-id';
+@Injectable()
 
-
-    /**
-     * Returns the body of POST method.
-     * 
-     * 
-     * @param params must be an object.
-     */
-
+export class UserService extends Server{
+    
+    constructor( public http: Http){
+        super( http );
+    }
 
     buildQuery( params : any ) {
         return this.http_build_query( params );
@@ -85,39 +49,52 @@ export class RegistrationPage {
     }
 
 
-    
-    /**
-     * @attention it saves user's session id in storage.
-     *      the key is 'xbase-session-id'.
-     * 
-     */
+    setLoginData( data ) : void {
+        let login = { id: data.id, session_id: data.session_id };
+        let str = JSON.stringify( data );
+        localStorage.setItem( MEMBER_LOGIN, str );
+    }
+ 
     user_register( data : any, successCallback: (session_id:string) => void, errorCallback: (error:string) => void ) {
         data['mc'] = 'user.register';
         this.query( data, (session_id : any)  => {
-        //     localStorage.setItem( XBASE_SESSION_ID, session_id );
-        //   console.log('session Id',  localStorage.getItem( XBASE_SESSION_ID ));
+            localStorage.setItem( SESSION_ID, session_id );
+          console.log('session Id',  localStorage.getItem( SESSION_ID ));
             successCallback( session_id );
         }, errorCallback );
     }
+
+    logout() {
+        localStorage.removeItem( SESSION_ID );
+    }
+
     /**
      * Login and save login session id
      */
     user_login( data : any, successCallback: (session_id:string) => void, errorCallback: (error:string) => void ) {
         data['mc'] = 'user.login';
         this.query( data, (session_id : any )=> {
-            // localStorage.setItem( XBASE_SESSION_ID, session_id );
+            localStorage.setItem( SESSION_ID, session_id );
             successCallback( session_id );
+        let login;
+            login ={
+            id: data.user_id,
+            session_id: data.session_id
+        }
+        console.log('login ' + data.user_id)
+        this.setLoginData( login )
+        console.log('login ' + JSON.stringify(login))
         }, errorCallback );
     }
 
 
     /**
-     * Check if the user logged in xbase
+     * Check if the user has has session
      */
     logged( yesCallback: ( session_id: string ) => void, noCallback?: () => void ) {
-        // let session_id = localStorage.getItem( XBASE_SESSION_ID );
-        // if ( session_id ) yesCallback( session_id );
-        // else noCallback();
+        let session_id = localStorage.getItem( SESSION_ID );
+        if ( session_id ) yesCallback( session_id );
+        else noCallback? noCallback() : console.log("no callback is undefined");
     }
 
 
@@ -182,11 +159,5 @@ export class RegistrationPage {
                 .replace(/\*/g, '%2A')
                 .replace(/%20/g, '+')
         }
-
-
-
-
-
-
 
 }
